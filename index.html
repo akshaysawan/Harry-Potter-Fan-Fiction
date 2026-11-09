@@ -1,15 +1,19 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="parchment">
+<html lang="en" data-theme="dark">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
   <title>The Harry Potter Chronicles — Fan Fiction Reader</title>
-  <meta name="description" content="Standalone e-reader for Book 1: The Boy Who Was Loved and Book 2: The Next Generation." />
+  <meta name="description"
+    content="Standalone e-reader for Book 1: The Boy Who Was Loved and Book 2: The Next Generation." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=Cinzel:wght@500;600;700&family=Crimson+Pro:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Inter:wght@400;500;600&family=Lora:ital,wght@0,400;0,600;1,400;1,600&display=swap" rel="stylesheet" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=Cinzel:wght@500;600;700&family=Crimson+Pro:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Inter:wght@400;500;600&family=Lora:ital,wght@0,400;0,600;1,400;1,600&display=swap"
+    rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
 </head>
+
 <body>
   <!-- Top Reading Progress Bar (visible in Reader view) -->
   <div id="reading-progress-track" class="reading-progress-track hidden" aria-hidden="true">
@@ -21,7 +25,7 @@
     <div class="header-left">
       <button id="btn-home" class="icon-btn header-home-btn hidden" title="Back to Library (Esc)">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M19 12H5M12 19l-7-7 7-7"/>
+          <path d="M19 12H5M12 19l-7-7 7-7" />
         </svg>
         <span class="btn-label">Library</span>
       </button>
@@ -71,14 +75,17 @@
       <button id="btn-tts-toggle" class="icon-btn hidden" title="Read Chapter Aloud (R)">
         <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M3 18v-6a9 9 0 0 1 18 0v6"></path>
-          <path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"></path>
+          <path
+            d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z">
+          </path>
         </svg>
         <span class="btn-label hide-mobile">Listen</span>
       </button>
 
       <!-- Quick Bookmark Current Position (Reader only) -->
       <button id="btn-add-bookmark" class="icon-btn hidden" title="Bookmark Current Spot (B)">
-        <svg id="icon-bookmark-star" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <svg id="icon-bookmark-star" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+          stroke-width="2">
           <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
         </svg>
       </button>
@@ -113,7 +120,8 @@
         </button>
       </div>
       <p id="library-series-subtitle" class="hero-subtitle">A Two-Book Alternate Universe Fan Fiction Saga</p>
-      <div id="sync-status-pill" class="sync-status-pill" title="Books automatically stay in sync when new .docx changes are pushed">
+      <div id="sync-status-pill" class="sync-status-pill"
+        title="Books automatically stay in sync when new .docx changes are pushed">
         <span class="sync-dot"></span>
         <span id="sync-status-text">2 Books Loaded • 234 Chapters • 253,060 Words</span>
       </div>
@@ -152,7 +160,9 @@
       <div class="footer-card">
         <div class="footer-card-info">
           <h3>Live GitHub Pages &amp; .docx Sync</h3>
-          <p>When hosted on GitHub Pages, pushing an updated <code>.docx</code> file to your repository automatically updates the chapters here. You can also preview an updated <code>.docx</code> file directly from your computer anytime:</p>
+          <p>When hosted on GitHub Pages, pushing an updated <code>.docx</code> file to your repository automatically
+            updates the chapters here. You can also preview an updated <code>.docx</code> file directly from your
+            computer anytime:</p>
         </div>
         <div class="footer-card-actions">
           <label for="docx-file-input" class="secondary-btn cursor-pointer">
@@ -167,7 +177,8 @@
           <button id="btn-export-data" class="secondary-btn" title="Export bookmarks and reading progress">
             Export Progress
           </button>
-          <label for="import-progress-input" class="secondary-btn cursor-pointer" title="Import bookmarks and reading progress">
+          <label for="import-progress-input" class="secondary-btn cursor-pointer"
+            title="Import bookmarks and reading progress">
             Import Progress
           </label>
           <input id="import-progress-input" type="file" accept=".json" class="hidden" />
@@ -179,10 +190,14 @@
     <footer class="legal-disclaimer" role="contentinfo" aria-label="Fan Fiction Disclaimer">
       <div class="disclaimer-badge">UNOFFICIAL FAN FICTION DISCLAIMER</div>
       <p>
-        This is a non-commercial, fan-created work of fiction written purely for entertainment and out of appreciation for the Wizarding World.
-        The <em>Harry Potter</em> universe, its original characters, settings, names, and related indicia are the sole intellectual property and copyright of
-        <strong>J.K. Rowling</strong>, Warner Bros. Entertainment Inc., and their respective publishers and license holders.
-        No copyright or trademark infringement is intended, and this project makes no claim of ownership over J.K. Rowling’s original works.
+        This is a non-commercial, fan-created work of fiction written purely for entertainment and out of appreciation
+        for the Wizarding World.
+        The <em>Harry Potter</em> universe, its original characters, settings, names, and related indicia are the sole
+        intellectual property and copyright of
+        <strong>J.K. Rowling</strong>, Warner Bros. Entertainment Inc., and their respective publishers and license
+        holders.
+        No copyright or trademark infringement is intended, and this project makes no claim of ownership over J.K.
+        Rowling’s original works.
       </p>
     </footer>
   </main>
@@ -190,12 +205,14 @@
   <!-- ==================== READER VIEW ==================== -->
   <main id="reader-view" class="reader-view hidden">
     <!-- Paginated Mode Click Zones -->
-    <button id="page-prev-zone" class="page-turn-zone page-turn-left hidden" aria-label="Previous Page" title="Previous Page (Left Arrow)">
+    <button id="page-prev-zone" class="page-turn-zone page-turn-left hidden" aria-label="Previous Page"
+      title="Previous Page (Left Arrow)">
       <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <polyline points="15 18 9 12 15 6"></polyline>
       </svg>
     </button>
-    <button id="page-next-zone" class="page-turn-zone page-turn-right hidden" aria-label="Next Page" title="Next Page (Right Arrow)">
+    <button id="page-next-zone" class="page-turn-zone page-turn-right hidden" aria-label="Next Page"
+      title="Next Page (Right Arrow)">
       <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <polyline points="9 18 15 12 9 6"></polyline>
       </svg>
@@ -213,7 +230,8 @@
             <span class="meta-sep">•</span>
             <span id="chapter-read-time">5 min read</span>
             <span class="meta-sep">•</span>
-            <button id="btn-toggle-complete" class="chapter-complete-toggle" title="Mark or unmark chapter as completed">
+            <button id="btn-toggle-complete" class="chapter-complete-toggle"
+              title="Mark or unmark chapter as completed">
               <span id="chapter-complete-icon">○</span>
               <span id="chapter-complete-text">Mark Completed</span>
             </button>
@@ -251,7 +269,8 @@
           </nav>
 
           <p class="chapter-disclaimer-note">
-            Unofficial, non-commercial fan fiction. The <em>Harry Potter</em> universe and characters are the property of <strong>J.K. Rowling</strong>. No infringement intended.
+            Unofficial, non-commercial fan fiction. The <em>Harry Potter</em> universe and characters are the property
+            of <strong>J.K. Rowling</strong>. No infringement intended.
           </p>
         </footer>
       </div>
@@ -351,7 +370,8 @@
     </div>
 
     <div class="toc-filter-row">
-      <input id="toc-search-input" type="search" placeholder="Filter chapters by title or number..." class="drawer-input" />
+      <input id="toc-search-input" type="search" placeholder="Filter chapters by title or number..."
+        class="drawer-input" />
     </div>
 
     <div id="toc-list" class="toc-list" role="list">
@@ -514,11 +534,13 @@
   <div id="search-modal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-label="Search Books">
     <div class="search-modal-card">
       <div class="search-input-header">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="search-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          class="search-icon">
           <circle cx="11" cy="11" r="8"></circle>
           <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
         </svg>
-        <input id="global-search-input" type="search" placeholder="Search characters, spells, scenes, or quotes across both books..." autocomplete="off" />
+        <input id="global-search-input" type="search"
+          placeholder="Search characters, spells, scenes, or quotes across both books..." autocomplete="off" />
         <button id="btn-close-search" class="icon-btn" aria-label="Close Search">Esc</button>
       </div>
 
@@ -538,7 +560,8 @@
   </div>
 
   <!-- ==================== EDIT TITLES MODAL ==================== -->
-  <div id="edit-titles-modal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-label="Customize Book Titles">
+  <div id="edit-titles-modal" class="modal-overlay hidden" role="dialog" aria-modal="true"
+    aria-label="Customize Book Titles">
     <div class="small-modal-card">
       <div class="drawer-header">
         <h2 class="drawer-title">Customize Titles</h2>
@@ -577,6 +600,62 @@
     </div>
   </div>
 
+  <!-- ==================== BOOK 2 PASSCODE MODAL ==================== -->
+  <div id="passcode-modal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-label="Unlock Book 2">
+    <div class="small-modal-card passcode-modal-card">
+      <div class="drawer-header">
+        <div>
+          <h2 class="drawer-title">🔒 Restricted Section — Book 2</h2>
+          <p class="drawer-subtitle">Enter the author’s access code to unlock Book 2</p>
+        </div>
+        <button id="btn-close-passcode" class="icon-btn" aria-label="Close">✕</button>
+      </div>
+      <form id="passcode-form" class="modal-form-body">
+        <div class="form-field">
+          <label for="input-book2-passcode">Secret Access Code</label>
+          <input
+            id="input-book2-passcode"
+            type="password"
+            inputmode="numeric"
+            placeholder="Enter 6-digit code..."
+            class="drawer-input passcode-input"
+            autocomplete="off"
+          />
+          <span id="passcode-error-msg" class="passcode-error hidden">Incorrect code. Please try again.</span>
+        </div>
+        <div class="modal-actions">
+          <button type="button" id="btn-cancel-passcode" class="secondary-btn">Cancel</button>
+          <button type="submit" class="primary-gold-btn">Unlock Book 2</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==================== BOOK 2 PASSCODE MODAL ==================== -->
+  <div id="passcode-modal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-label="Unlock Book 2">
+    <div class="small-modal-card passcode-modal-card">
+      <div class="drawer-header">
+        <div>
+          <h2 class="drawer-title">🔒 Restricted Section — Book 2</h2>
+          <p class="drawer-subtitle">Enter the author’s access code to unlock Book 2</p>
+        </div>
+        <button id="btn-close-passcode" class="icon-btn" aria-label="Close">✕</button>
+      </div>
+      <form id="passcode-form" class="modal-form-body">
+        <div class="form-field">
+          <label for="input-book2-passcode">Secret Access Code</label>
+          <input id="input-book2-passcode" type="password" inputmode="numeric" placeholder="Enter 6-digit code..."
+            class="drawer-input passcode-input" autocomplete="off" />
+          <span id="passcode-error-msg" class="passcode-error hidden">Incorrect code. Please try again.</span>
+        </div>
+        <div class="modal-actions">
+          <button type="button" id="btn-cancel-passcode" class="secondary-btn">Cancel</button>
+          <button type="submit" class="primary-gold-btn">Unlock Book 2</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- Toast Notification -->
   <div id="toast-notification" class="toast-notification hidden" role="status" aria-live="polite"></div>
 
@@ -584,5 +663,5 @@
   <script src="books-data.js"></script>
   <script src="app.js"></script>
 </body>
-</html>
 
+</html>

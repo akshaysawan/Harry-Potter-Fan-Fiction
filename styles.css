@@ -1887,6 +1887,46 @@ body.mode-paginated .chapter-content {
   margin-top: 0.5rem;
 }
 
+/* Passcode Modal & Locked State */
+.passcode-input {
+  font-size: 1.25rem;
+  letter-spacing: 0.25em;
+  text-align: center;
+  font-weight: 700;
+  padding: 0.7rem;
+}
+
+.passcode-error {
+  font-size: 0.78rem;
+  color: #dc2626;
+  font-weight: 600;
+  margin-top: 0.25rem;
+}
+
+.status-badge.badge-locked {
+  background: rgba(124, 31, 23, 0.14);
+  color: var(--accent-primary);
+  border: 1px solid rgba(124, 31, 23, 0.35);
+}
+
+.lock-toggle-btn {
+  background: transparent;
+  border: 1px solid var(--border-color);
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  cursor: pointer;
+  margin-left: auto;
+  transition: all 0.15s;
+}
+
+.lock-toggle-btn:hover {
+  border-color: var(--accent-primary);
+  color: var(--accent-primary);
+}
+
 /* Toast Notification */
 .toast-notification {
   position: fixed;

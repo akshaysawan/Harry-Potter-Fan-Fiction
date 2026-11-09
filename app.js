@@ -21,8 +21,12 @@ const STORAGE_KEYS = {
   STATE: "hp_reader_state_v1",
   PREFS: "hp_reader_prefs_v1",
   BOOKMARKS: "hp_reader_bookmarks_v1",
-  TITLES: "hp_reader_custom_titles_v1"
+  TITLES: "hp_reader_custom_titles_v1",
+  BOOK2_UNLOCKED: "hp_reader_book2_unlocked_v1"
 };
+
+// Deterministic hash of the secret Book 2 passcode
+const BOOK2_PASSCODE_HASH = "3399f40c487f";
 
 const FONT_STACKS = {
   crimson: "'Crimson Pro', Georgia, serif",
@@ -41,10 +45,12 @@ const App = {
   searchScope: "all",
   pageIndex: 0,
   totalPages: 1,
+  book2Unlocked: false,
+  pendingUnlockCallback: null,
 
   prefs: {
     mode: "scroll", // 'scroll' | 'paginated'
-    theme: "parchment", // 'parchment' | 'sepia' | 'dark' | 'light'
+    theme: document.documentElement.getAttribute("data-theme") || "dark", // 'parchment' | 'sepia' | 'dark' | 'light'
     font: "crimson",
     fontSize: 20,
     lineHeight: 1.75,
@@ -109,9 +115,60 @@ function loadSavedData() {
 
     const savedTitles = localStorage.getItem(STORAGE_KEYS.TITLES);
     if (savedTitles) App.customTitles = JSON.parse(savedTitles);
+
+    const savedUnlock = localStorage.getItem(STORAGE_KEYS.BOOK2_UNLOCKED);
+    if (savedUnlock === BOOK2_PASSCODE_HASH) {
+      App.book2Unlocked = true;
+    }
   } catch (err) {
     console.warn("Could not read localStorage:", err);
   }
+}
+
+function hashPasscode(str) {
+  const s = String(str || "").trim();
+  let h1 = 0xdeadbeef ^ s.length, h2 = 0x41c6ce57 ^ s.length;
+  for (let i = 0, ch; i < s.length; i++) {
+    ch = s.charCodeAt(i);
+    h1 = Math.imul(h1 ^ ch, 2654435761);
+    h2 = Math.imul(h2 ^ ch, 1597334677);
+  }
+  h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+  h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+  return (4294967296 * (2097151 & h2) + (h1 >>> 0)).toString(16);
+}
+
+function isBookLocked(bookId) {
+  return bookId === "book-2" && !App.book2Unlocked;
+}
+
+function promptUnlockBook2(onUnlocked) {
+  App.pendingUnlockCallback = onUnlocked || null;
+  const modal = document.getElementById("passcode-modal");
+  const input = document.getElementById("input-book2-passcode");
+  const errEl = document.getElementById("passcode-error-msg");
+  errEl.classList.add("hidden");
+  input.value = "";
+  modal.classList.remove("hidden");
+  setTimeout(() => input.focus(), 30);
+}
+
+function closePasscodeModal() {
+  document.getElementById("passcode-modal").classList.add("hidden");
+  App.pendingUnlockCallback = null;
+}
+
+function lockBook2() {
+  App.book2Unlocked = false;
+  try {
+    localStorage.removeItem(STORAGE_KEYS.BOOK2_UNLOCKED);
+  } catch (e) {}
+  if (App.view === "reader" && App.activeBookId === "book-2") {
+    showLibraryView();
+  } else {
+    renderLibrary();
+  }
+  showToast("Book 2 is now locked");
 }
 
 function saveProgress() {
@@ -363,9 +420,9 @@ function renderLibrary() {
   document.getElementById("sync-status-text").textContent =
     `${books.length} Books Loaded • ${totalChapters.toLocaleString()} Chapters • ${totalWords.toLocaleString()} Words`;
 
-  // Render Continue Reading Card
+  // Render Continue Reading Card (hide if last read book is locked)
   const continueCard = document.getElementById("continue-reading-card");
-  if (App.progress.lastBookId) {
+  if (App.progress.lastBookId && !isBookLocked(App.progress.lastBookId)) {
     const lastBook = getBook(App.progress.lastBookId) || books[0];
     const lastChap = getChapter(lastBook.id, App.progress.lastChapterNum) || lastBook.chapters[0];
     if (lastBook && lastChap) {
@@ -387,6 +444,7 @@ function renderLibrary() {
   grid.innerHTML = "";
 
   books.forEach((book, idx) => {
+    const locked = isBookLocked(book.id);
     const completedCount = getCompletedChaptersCount(book.id);
     const pct = book.chapters.length > 0
       ? Math.round((completedCount / book.chapters.length) * 100)
@@ -401,51 +459,111 @@ function renderLibrary() {
     card.className = "book-card";
     const isWip = (book.badge || "").toLowerCase().includes("progress") || (book.badge || "").toLowerCase().includes("wip");
 
-    card.innerHTML = `
-      <div>
-        <div class="book-card-top">
-          <div class="book-cover-art cover-${book.id}" aria-hidden="true">
-            <span class="cover-volume">VOLUME ${idx === 0 ? "I" : "II"}</span>
-            <span class="cover-emblem">${idx === 0 ? "⚡" : "🦅"}</span>
-            <span class="cover-mini-title">${escapeHtml(book.title.replace(/^Book \d+:\s*/i, ""))}</span>
-          </div>
-          <div class="book-info-col">
-            <div class="book-badge-row">
-              <span class="status-badge ${isWip ? "badge-wip" : "badge-complete"}">${escapeHtml(book.badge || "Book")}</span>
-              <span class="stat-item">${book.chapters.length} Chapters</span>
+    if (locked) {
+      card.innerHTML = `
+        <div>
+          <div class="book-card-top">
+            <div class="book-cover-art cover-${book.id}" aria-hidden="true">
+              <span class="cover-volume">VOLUME ${idx === 0 ? "I" : "II"}</span>
+              <span class="cover-emblem">🔒</span>
+              <span class="cover-mini-title">${escapeHtml(book.title.replace(/^Book \d+:\s*/i, ""))}</span>
             </div>
-            <h2 class="book-card-title">${escapeHtml(book.title)}</h2>
-            <p class="book-card-subtitle">${escapeHtml(book.subtitle || "")}</p>
-            <div class="book-stats-grid">
-              <span class="stat-item">📖 ${(book.wordCount || 0).toLocaleString()} words</span>
-              <span class="stat-item">⏱ ~${estHours} hrs read</span>
+            <div class="book-info-col">
+              <div class="book-badge-row">
+                <span class="status-badge badge-locked">🔒 Author Access Only</span>
+                <span class="status-badge ${isWip ? "badge-wip" : "badge-complete"}">${escapeHtml(book.badge || "WIP")}</span>
+              </div>
+              <h2 class="book-card-title">${escapeHtml(book.title)}</h2>
+              <p class="book-card-subtitle">${escapeHtml(book.subtitle || "")}</p>
+              <div class="book-stats-grid">
+                <span class="stat-item">🔐 Protected Work-in-Progress</span>
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      <div class="book-progress-box">
-        <div class="progress-label-row">
-          <span>${completedCount} of ${book.chapters.length} chapters completed</span>
-          <span>${pct}%</span>
+        <div class="book-progress-box">
+          <div class="progress-label-row">
+            <span>Enter your access code to unlock chapters</span>
+            <span>🔒</span>
+          </div>
+          <div class="progress-track-mini">
+            <div class="progress-fill-mini" style="width: 0%"></div>
+          </div>
+          <div class="book-card-actions">
+            <button class="primary-gold-btn btn-unlock-book" data-book-id="${book.id}" data-chap="${resumeChapNum}">
+              <span>🔒 Unlock Book 2</span>
+            </button>
+          </div>
         </div>
-        <div class="progress-track-mini">
-          <div class="progress-fill-mini" style="width: ${pct}%"></div>
+      `;
+    } else {
+      const lockAgainBtn = book.id === "book-2"
+        ? `<button class="lock-toggle-btn btn-relock-book2" title="Lock Book 2 again">🔒 Lock</button>`
+        : "";
+      card.innerHTML = `
+        <div>
+          <div class="book-card-top">
+            <div class="book-cover-art cover-${book.id}" aria-hidden="true">
+              <span class="cover-volume">VOLUME ${idx === 0 ? "I" : "II"}</span>
+              <span class="cover-emblem">${idx === 0 ? "⚡" : "🦅"}</span>
+              <span class="cover-mini-title">${escapeHtml(book.title.replace(/^Book \d+:\s*/i, ""))}</span>
+            </div>
+            <div class="book-info-col">
+              <div class="book-badge-row">
+                <span class="status-badge ${isWip ? "badge-wip" : "badge-complete"}">${escapeHtml(book.badge || "Book")}</span>
+                <span class="stat-item">${book.chapters.length} Chapters</span>
+                ${lockAgainBtn}
+              </div>
+              <h2 class="book-card-title">${escapeHtml(book.title)}</h2>
+              <p class="book-card-subtitle">${escapeHtml(book.subtitle || "")}</p>
+              <div class="book-stats-grid">
+                <span class="stat-item">📖 ${(book.wordCount || 0).toLocaleString()} words</span>
+                <span class="stat-item">⏱ ~${estHours} hrs read</span>
+              </div>
+            </div>
+          </div>
         </div>
-        <div class="book-card-actions">
-          <button class="primary-gold-btn btn-open-book" data-book-id="${book.id}" data-chap="${resumeChapNum}">
-            <span>${hasStarted ? `Continue (Ch. ${resumeChapNum})` : "Start Reading"}</span>
-          </button>
-          <button class="secondary-btn btn-browse-toc" data-book-id="${book.id}">
-            Chapters
-          </button>
+
+        <div class="book-progress-box">
+          <div class="progress-label-row">
+            <span>${completedCount} of ${book.chapters.length} chapters completed</span>
+            <span>${pct}%</span>
+          </div>
+          <div class="progress-track-mini">
+            <div class="progress-fill-mini" style="width: ${pct}%"></div>
+          </div>
+          <div class="book-card-actions">
+            <button class="primary-gold-btn btn-open-book" data-book-id="${book.id}" data-chap="${resumeChapNum}">
+              <span>${hasStarted ? `Continue (Ch. ${resumeChapNum})` : "Start Reading"}</span>
+            </button>
+            <button class="secondary-btn btn-browse-toc" data-book-id="${book.id}">
+              Chapters
+            </button>
+          </div>
         </div>
-      </div>
-    `;
+      `;
+    }
     grid.appendChild(card);
   });
 
   // Bind dynamic card buttons
+  grid.querySelectorAll(".btn-unlock-book").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const chap = parseInt(btn.dataset.chap, 10) || 1;
+      promptUnlockBook2(() => {
+        renderLibrary();
+        openReader("book-2", chap);
+      });
+    });
+  });
+
+  grid.querySelectorAll(".btn-relock-book2").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      lockBook2();
+    });
+  });
+
   grid.querySelectorAll(".btn-open-book").forEach((btn) => {
     btn.addEventListener("click", () => {
       openReader(btn.dataset.bookId, parseInt(btn.dataset.chap, 10) || 1);
@@ -494,6 +612,13 @@ function getCompletedChaptersCount(bookId) {
 function openReader(bookId, chapterNum, targetParagraphIndex = null, highlightTerm = null) {
   const book = getBook(bookId);
   if (!book) return;
+  if (isBookLocked(book.id)) {
+    promptUnlockBook2(() => {
+      renderLibrary();
+      openReader(bookId, chapterNum, targetParagraphIndex, highlightTerm);
+    });
+    return;
+  }
   const chapter = getChapter(bookId, chapterNum) || book.chapters[0];
   if (!chapter) return;
 
@@ -970,6 +1095,9 @@ function renderBookmarksList() {
    7. TABLE OF CONTENTS DRAWER
    ============================================================================ */
 function openTocDrawer() {
+  if (isBookLocked(App.tocBookId)) {
+    App.tocBookId = "book-1";
+  }
   closeAllDrawers();
   document.getElementById("drawer-backdrop").classList.remove("hidden");
   document.getElementById("toc-drawer").classList.remove("hidden");
@@ -989,7 +1117,10 @@ function renderTocList() {
   // Update tabs
   document.querySelectorAll(".toc-book-tab").forEach((tab) => {
     const b = getBook(tab.dataset.bookId);
-    if (b) tab.textContent = `${b.id === "book-1" ? "Book 1" : "Book 2"} (${b.chapters.length})`;
+    if (b) {
+      const lockedSuffix = isBookLocked(b.id) ? " 🔒" : ` (${b.chapters.length})`;
+      tab.textContent = `${b.id === "book-1" ? "Book 1" : "Book 2"}${lockedSuffix}`;
+    }
     tab.classList.toggle("active", tab.dataset.bookId === book.id);
   });
 
@@ -1071,6 +1202,7 @@ function executeFullTextSearch() {
   const maxResults = 120;
 
   for (const book of App.data.books) {
+    if (isBookLocked(book.id)) continue;
     if (App.searchScope !== "all" && App.searchScope !== book.id) continue;
 
     for (const ch of book.chapters) {
@@ -1586,7 +1718,17 @@ function bindEvents() {
   // TOC Tabs & Filter
   document.querySelectorAll(".toc-book-tab").forEach((tab) => {
     tab.addEventListener("click", () => {
-      App.tocBookId = tab.dataset.bookId;
+      const targetBookId = tab.dataset.bookId;
+      if (isBookLocked(targetBookId)) {
+        closeAllDrawers();
+        promptUnlockBook2(() => {
+          App.tocBookId = targetBookId;
+          renderLibrary();
+          openTocDrawer();
+        });
+        return;
+      }
+      App.tocBookId = targetBookId;
       renderTocList();
     });
   });
@@ -1716,12 +1858,57 @@ function bindEvents() {
 
   document.querySelectorAll(".scope-pill").forEach((pill) => {
     pill.addEventListener("click", () => {
+      if (pill.dataset.scope === "book-2" && isBookLocked("book-2")) {
+        closeSearchModal();
+        promptUnlockBook2(() => {
+          App.searchScope = "book-2";
+          document.querySelectorAll(".scope-pill").forEach((p) =>
+            p.classList.toggle("active", p.dataset.scope === App.searchScope)
+          );
+          renderLibrary();
+          openSearchModal();
+          executeFullTextSearch();
+        });
+        return;
+      }
       App.searchScope = pill.dataset.scope;
       document.querySelectorAll(".scope-pill").forEach((p) =>
         p.classList.toggle("active", p.dataset.scope === App.searchScope)
       );
       executeFullTextSearch();
     });
+  });
+
+  // Book 2 Passcode Modal Events
+  document.getElementById("btn-close-passcode").addEventListener("click", closePasscodeModal);
+  document.getElementById("btn-cancel-passcode").addEventListener("click", closePasscodeModal);
+  document.getElementById("passcode-modal").addEventListener("click", (e) => {
+    if (e.target.id === "passcode-modal") closePasscodeModal();
+  });
+
+  document.getElementById("passcode-form").addEventListener("submit", (e) => {
+    e.preventDefault();
+    const input = document.getElementById("input-book2-passcode");
+    const errEl = document.getElementById("passcode-error-msg");
+    const enteredHash = hashPasscode(input.value);
+
+    if (enteredHash === BOOK2_PASSCODE_HASH) {
+      App.book2Unlocked = true;
+      try {
+        localStorage.setItem(STORAGE_KEYS.BOOK2_UNLOCKED, BOOK2_PASSCODE_HASH);
+      } catch (err) {}
+      const cb = App.pendingUnlockCallback;
+      closePasscodeModal();
+      showToast("Book 2 unlocked!");
+      if (typeof cb === "function") {
+        cb();
+      } else {
+        renderLibrary();
+      }
+    } else {
+      errEl.classList.remove("hidden");
+      input.select();
+    }
   });
 
   // Edit Titles Modal
@@ -1827,6 +2014,7 @@ function bindEvents() {
 
     if (e.key === "Escape") {
       closeSearchModal();
+      closePasscodeModal();
       closeAllDrawers();
       document.getElementById("edit-titles-modal").classList.add("hidden");
       return;
