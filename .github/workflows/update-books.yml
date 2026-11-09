@@ -1,0 +1,35 @@
+name: Auto-Update Books Data on .docx Push
+
+on:
+  push:
+    paths:
+      - '*.docx'
+      - 'build-books.ps1'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  rebuild-books-data:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Rebuild books-data.js from .docx files
+        shell: pwsh
+        run: ./build-books.ps1
+
+      - name: Commit updated books-data.js
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add books-data.js
+          if git diff --staged --quiet; then
+            echo "No changes to books-data.js"
+          else
+            git commit -m "chore: auto-update books-data.js from .docx"
+            git push
+          fi
+

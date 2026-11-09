@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="parchment">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
+  <title>The Harry Potter Chronicles — Fan Fiction Reader</title>
+  <meta name="description" content="Standalone e-reader for Book 1: The Boy Who Was Loved and Book 2: The Next Generation." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=Cinzel:wght@500;600;700&family=Crimson+Pro:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Inter:wght@400;500;600&family=Lora:ital,wght@0,400;0,600;1,400;1,600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <!-- Top Reading Progress Bar (visible in Reader view) -->
+  <div id="reading-progress-track" class="reading-progress-track hidden" aria-hidden="true">
+    <div id="reading-progress-bar" class="reading-progress-bar"></div>
+  </div>
+
+  <!-- Navigation Header -->
+  <header id="app-header" class="app-header">
+    <div class="header-left">
+      <button id="btn-home" class="icon-btn header-home-btn hidden" title="Back to Library (Esc)">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M19 12H5M12 19l-7-7 7-7"/>
+        </svg>
+        <span class="btn-label">Library</span>
+      </button>
+
+      <div id="brand-logo" class="brand-logo" role="button" tabindex="0" title="Return to Library">
+        <span class="brand-crest" aria-hidden="true">⚡</span>
+        <div class="brand-titles">
+          <span id="header-series-title" class="brand-title">The Harry Potter Chronicles</span>
+          <span id="header-context-subtitle" class="brand-subtitle">Two-Book Fan Fiction Collection</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Reader Context Controls (visible in Reader Mode) -->
+    <div id="reader-nav-center" class="reader-nav-center hidden">
+      <div class="book-switcher-pills" role="tablist" aria-label="Switch Book">
+        <button id="pill-book-1" class="book-pill active" data-book-id="book-1" role="tab">Book 1</button>
+        <button id="pill-book-2" class="book-pill" data-book-id="book-2" role="tab">Book 2</button>
+      </div>
+      <button id="btn-toc" class="toc-trigger-btn" title="Table of Contents (T)">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="8" y1="6" x2="21" y2="6"></line>
+          <line x1="8" y1="12" x2="21" y2="12"></line>
+          <line x1="8" y1="18" x2="21" y2="18"></line>
+          <line x1="3" y1="6" x2="3.01" y2="6"></line>
+          <line x1="3" y1="12" x2="3.01" y2="12"></line>
+          <line x1="3" y1="18" x2="3.01" y2="18"></line>
+        </svg>
+        <span id="current-chapter-pill-label" class="chapter-pill-label">Chapter 1</span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="6 9 12 15 18 9"></polyline>
+        </svg>
+      </button>
+    </div>
+
+    <div class="header-right">
+      <!-- Search Trigger -->
+      <button id="btn-search" class="icon-btn" title="Search Across Both Books (Ctrl+K or /)">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+        <span class="btn-label hide-mobile">Search</span>
+      </button>
+
+      <!-- Read Aloud (Audiobook TTS) Trigger (Reader only) -->
+      <button id="btn-tts-toggle" class="icon-btn hidden" title="Read Chapter Aloud (R)">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M3 18v-6a9 9 0 0 1 18 0v6"></path>
+          <path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"></path>
+        </svg>
+        <span class="btn-label hide-mobile">Listen</span>
+      </button>
+
+      <!-- Quick Bookmark Current Position (Reader only) -->
+      <button id="btn-add-bookmark" class="icon-btn hidden" title="Bookmark Current Spot (B)">
+        <svg id="icon-bookmark-star" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+        </svg>
+      </button>
+
+      <!-- Bookmarks Drawer Trigger -->
+      <button id="btn-bookmarks" class="icon-btn" title="Saved Bookmarks & Progress">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+          <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+        </svg>
+        <span id="bookmark-count-badge" class="count-badge hidden">0</span>
+      </button>
+
+      <!-- Typography & Theme Settings Trigger -->
+      <button id="btn-settings" class="icon-btn typography-btn" title="Reading Theme & Typography Settings">
+        <span class="aa-icon">Aa</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- ==================== LIBRARY VIEW ==================== -->
+  <main id="library-view" class="library-view">
+    <section class="hero-section">
+      <div class="hero-ornament" aria-hidden="true">✦ ─── ⚡ ─── ✦</div>
+      <div class="hero-title-row">
+        <h1 id="library-series-title" class="hero-title">The Harry Potter Chronicles</h1>
+        <button id="btn-edit-titles" class="edit-titles-btn" title="Customize Series & Book Titles">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 20h9"></path>
+            <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+          </svg>
+        </button>
+      </div>
+      <p id="library-series-subtitle" class="hero-subtitle">A Two-Book Alternate Universe Fan Fiction Saga</p>
+      <div id="sync-status-pill" class="sync-status-pill" title="Books automatically stay in sync when new .docx changes are pushed">
+        <span class="sync-dot"></span>
+        <span id="sync-status-text">2 Books Loaded • 234 Chapters • 253,060 Words</span>
+      </div>
+    </section>
+
+    <!-- Continue Reading Banner (shown dynamically if user has reading history) -->
+    <section id="continue-reading-card" class="continue-reading-card hidden" aria-label="Continue Reading">
+      <div class="continue-left">
+        <span class="continue-eyebrow">CONTINUE WHERE YOU LEFT OFF</span>
+        <h2 id="continue-book-title" class="continue-book">Book 1: The Boy Who Was Loved</h2>
+        <p id="continue-chapter-title" class="continue-chapter">Chapter 1: The Boy Who Was Loved</p>
+        <div class="continue-meta">
+          <span id="continue-progress-label">Chapter 1 of 152</span>
+          <span class="meta-sep">•</span>
+          <span id="continue-last-read">Just now</span>
+        </div>
+      </div>
+      <div class="continue-right">
+        <button id="btn-resume-reading" class="primary-gold-btn">
+          <span>Resume Reading</span>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+            <polyline points="12 5 19 12 12 19"></polyline>
+          </svg>
+        </button>
+      </div>
+    </section>
+
+    <!-- Bookshelf Grid -->
+    <section id="bookshelf-grid" class="bookshelf-grid" aria-label="Bookshelf">
+      <!-- Populated dynamically from books data -->
+    </section>
+
+    <!-- Quick Utility Bar: Load updated .docx or Backup/Restore Progress -->
+    <section class="library-footer-bar">
+      <div class="footer-card">
+        <div class="footer-card-info">
+          <h3>Live GitHub Pages &amp; .docx Sync</h3>
+          <p>When hosted on GitHub Pages, pushing an updated <code>.docx</code> file to your repository automatically updates the chapters here. You can also preview an updated <code>.docx</code> file directly from your computer anytime:</p>
+        </div>
+        <div class="footer-card-actions">
+          <label for="docx-file-input" class="secondary-btn cursor-pointer">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="17 8 12 3 7 8"></polyline>
+              <line x1="12" y1="3" x2="12" y2="15"></line>
+            </svg>
+            <span>Load / Preview .docx File</span>
+          </label>
+          <input id="docx-file-input" type="file" accept=".docx" class="hidden" />
+          <button id="btn-export-data" class="secondary-btn" title="Export bookmarks and reading progress">
+            Export Progress
+          </button>
+          <label for="import-progress-input" class="secondary-btn cursor-pointer" title="Import bookmarks and reading progress">
+            Import Progress
+          </label>
+          <input id="import-progress-input" type="file" accept=".json" class="hidden" />
+        </div>
+      </div>
+    </section>
+
+    <!-- Fan Fiction Legal Disclaimer -->
+    <footer class="legal-disclaimer" role="contentinfo" aria-label="Fan Fiction Disclaimer">
+      <div class="disclaimer-badge">UNOFFICIAL FAN FICTION DISCLAIMER</div>
+      <p>
+        This is a non-commercial, fan-created work of fiction written purely for entertainment and out of appreciation for the Wizarding World.
+        The <em>Harry Potter</em> universe, its original characters, settings, names, and related indicia are the sole intellectual property and copyright of
+        <strong>J.K. Rowling</strong>, Warner Bros. Entertainment Inc., and their respective publishers and license holders.
+        No copyright or trademark infringement is intended, and this project makes no claim of ownership over J.K. Rowling’s original works.
+      </p>
+    </footer>
+  </main>
+
+  <!-- ==================== READER VIEW ==================== -->
+  <main id="reader-view" class="reader-view hidden">
+    <!-- Paginated Mode Click Zones -->
+    <button id="page-prev-zone" class="page-turn-zone page-turn-left hidden" aria-label="Previous Page" title="Previous Page (Left Arrow)">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="15 18 9 12 15 6"></polyline>
+      </svg>
+    </button>
+    <button id="page-next-zone" class="page-turn-zone page-turn-right hidden" aria-label="Next Page" title="Next Page (Right Arrow)">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="9 18 15 12 9 6"></polyline>
+      </svg>
+    </button>
+
+    <article id="reader-Viewport" class="reader-viewport">
+      <div id="reader-paper" class="reader-paper">
+        <!-- Chapter Header -->
+        <header id="chapter-header" class="chapter-header">
+          <div id="chapter-book-eyebrow" class="chapter-book-eyebrow">BOOK 1: THE BOY WHO WAS LOVED</div>
+          <div class="chapter-number-badge" id="chapter-number-badge">CHAPTER I</div>
+          <h1 id="chapter-title" class="chapter-title">The Boy Who Was Loved</h1>
+          <div class="chapter-meta-bar">
+            <span id="chapter-word-count">1,200 words</span>
+            <span class="meta-sep">•</span>
+            <span id="chapter-read-time">5 min read</span>
+            <span class="meta-sep">•</span>
+            <button id="btn-toggle-complete" class="chapter-complete-toggle" title="Mark or unmark chapter as completed">
+              <span id="chapter-complete-icon">○</span>
+              <span id="chapter-complete-text">Mark Completed</span>
+            </button>
+          </div>
+          <div class="chapter-ornament" aria-hidden="true">─── ✦ ⚡ ✦ ───</div>
+        </header>
+
+        <!-- Chapter Story Content -->
+        <div id="chapter-content" class="chapter-content">
+          <!-- Paragraphs injected here -->
+        </div>
+
+        <!-- Chapter End Footer (Scroll mode & last page of Paginated mode) -->
+        <footer id="chapter-footer" class="chapter-footer">
+          <div class="chapter-end-ornament" aria-hidden="true">✦ ─── ✦ ─── ✦</div>
+          <div class="chapter-completion-banner">
+            <button id="btn-footer-complete" class="complete-pill-btn">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+              <span id="footer-complete-label">Chapter Completed</span>
+            </button>
+          </div>
+
+          <nav class="chapter-Resize-nav" aria-label="Chapter Navigation">
+            <button id="btn-prev-chapter" class="chapter-nav-card prev-card">
+              <span class="nav-direction">← Previous Chapter</span>
+              <strong id="prev-chapter-title" class="nav-chap-title">None</strong>
+            </button>
+
+            <button id="btn-next-chapter" class="chapter-nav-card next-card">
+              <span class="nav-direction">Next Chapter →</span>
+              <strong id="next-chapter-title" class="nav-chap-title">Chapter 2</strong>
+            </button>
+          </nav>
+
+          <p class="chapter-disclaimer-note">
+            Unofficial, non-commercial fan fiction. The <em>Harry Potter</em> universe and characters are the property of <strong>J.K. Rowling</strong>. No infringement intended.
+          </p>
+        </footer>
+      </div>
+    </article>
+
+    <!-- Floating Read-Aloud (Audiobook TTS) Player Bar -->
+    <div id="tts-player-bar" class="tts-player-bar hidden" role="region" aria-label="Read Aloud Audio Player">
+      <div class="tts-controls-left">
+        <button id="btn-tts-prev" class="tts-icon-btn" title="Previous Paragraph">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+            <polygon points="19 20 9 12 19 4 19 20"></polygon>
+            <line x1="5" y1="19" x2="5" y2="5"></line>
+          </svg>
+        </button>
+
+        <button id="btn-tts-play" class="tts-play-btn" title="Play / Pause Read Aloud">
+          <svg id="tts-icon-play" width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+            <polygon points="6 4 20 12 6 20 6 4"></polygon>
+          </svg>
+          <svg id="tts-icon-pause" class="hidden" width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+            <rect x="6" y="4" width="4" height="16"></rect>
+            <rect x="14" y="4" width="4" height="16"></rect>
+          </svg>
+        </button>
+
+        <button id="btn-tts-next" class="tts-icon-btn" title="Next Paragraph">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+            <polygon points="5 4 15 12 5 20 5 4"></polygon>
+            <line x1="19" y1="5" x2="19" y2="19"></line>
+          </svg>
+        </button>
+      </div>
+
+      <div class="tts-status-center">
+        <div class="tts-status-top">
+          <span id="tts-badge-state" class="tts-badge-state">READY</span>
+          <span id="tts-para-counter" class="tts-para-counter">Click any paragraph to jump</span>
+        </div>
+        <div id="tts-spoken-preview" class="tts-spoken-preview">Press Play to start reading this chapter aloud…</div>
+      </div>
+
+      <div class="tts-controls-right">
+        <label class="tts-select-wrap" title="Playback Speed">
+          <select id="tts-rate-select" class="tts-select">
+            <option value="0.8">0.8×</option>
+            <option value="0.9">0.9×</option>
+            <option value="1" selected>1.0×</option>
+            <option value="1.15">1.15×</option>
+            <option value="1.25">1.25×</option>
+            <option value="1.5">1.5×</option>
+            <option value="1.75">1.75×</option>
+            <option value="2">2.0×</option>
+          </select>
+        </label>
+
+        <label class="tts-select-wrap voice-select-wrap" title="Narrator Voice">
+          <select id="tts-voice-select" class="tts-select tts-voice-select">
+            <option value="">Default Browser Voice</option>
+          </select>
+        </label>
+
+        <button id="btn-tts-close" class="tts-icon-btn tts-close-btn" title="Stop & Close Read Aloud">✕</button>
+      </div>
+    </div>
+
+    <!-- Bottom Status Bar (always visible in Paginated mode, subtle in Scroll mode) -->
+    <div id="reader-bottom-bar" class="reader-bottom-bar">
+      <div class="bottom-bar-left">
+        <span id="bottom-book-chapter">Book 1 • Ch. 1</span>
+      </div>
+      <div id="paginated-controls" class="bottom-bar-center hidden">
+        <button id="btn-page-prev" class="mini-page-btn" title="Previous Page">‹ Prev</button>
+        <span id="page-counter-text" class="page-counter-text">Page 1 of 5</span>
+        <button id="btn-page-next" class="mini-page-btn" title="Next Page">Next ›</button>
+      </div>
+      <div class="bottom-bar-right">
+        <span id="bottom-progress-pct">0% of Chapter</span>
+      </div>
+    </div>
+  </main>
+
+  <!-- ==================== TABLE OF CONTENTS DRAWER ==================== -->
+  <div id="drawer-backdrop" class="drawer-backdrop hidden"></div>
+
+  <aside id="toc-drawer" class="side-drawer left-drawer hidden" aria-label="Table of Contents">
+    <div class="drawer-header">
+      <div>
+        <h2 id="toc-book-title" class="drawer-title">Table of Contents</h2>
+        <p id="toc-progress-summary" class="drawer-subtitle">0 of 152 chapters completed</p>
+      </div>
+      <button id="btn-close-toc" class="icon-btn" aria-label="Close Table of Contents">✕</button>
+    </div>
+
+    <div class="toc-book-tabs">
+      <button id="toc-tab-book-1" class="toc-book-tab active" data-book-id="book-1">Book 1 (152)</button>
+      <button id="toc-tab-book-2" class="toc-book-tab" data-book-id="book-2">Book 2 (82)</button>
+    </div>
+
+    <div class="toc-filter-row">
+      <input id="toc-search-input" type="search" placeholder="Filter chapters by title or number..." class="drawer-input" />
+    </div>
+
+    <div id="toc-list" class="toc-list" role="list">
+      <!-- Populated dynamically -->
+    </div>
+  </aside>
+
+  <!-- ==================== APPEARANCE / SETTINGS DRAWER ==================== -->
+  <aside id="settings-drawer" class="side-drawer right-drawer hidden" aria-label="Reading Settings">
+    <div class="drawer-header">
+      <div>
+        <h2 class="drawer-title">Reading Preferences</h2>
+        <p class="drawer-subtitle">Customize theme, font &amp; layout</p>
+      </div>
+      <button id="btn-close-settings" class="icon-btn" aria-label="Close Settings">✕</button>
+    </div>
+
+    <div class="settings-body">
+      <!-- Reading Mode -->
+      <div class="setting-group">
+        <label class="setting-label">Reading Mode</label>
+        <div class="segmented-control">
+          <button id="mode-scroll" class="seg-btn active" data-mode="scroll">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <polyline points="19 12 12 19 5 12"></polyline>
+            </svg>
+            <span>Vertical Scroll</span>
+          </button>
+          <button id="mode-paginated" class="seg-btn" data-mode="paginated">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
+              <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+            </svg>
+            <span>Page Flip</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Color Themes -->
+      <div class="setting-group">
+        <label class="setting-label">Color Theme</label>
+        <div class="theme-swatches">
+          <button class="theme-swatch active" data-theme-val="parchment">
+            <span class="swatch-circle swatch-parchment"></span>
+            <span class="swatch-name">Parchment</span>
+          </button>
+          <button class="theme-swatch" data-theme-val="sepia">
+            <span class="swatch-circle swatch-sepia"></span>
+            <span class="swatch-name">Sepia</span>
+          </button>
+          <button class="theme-swatch" data-theme-val="dark">
+            <span class="swatch-circle swatch-dark"></span>
+            <span class="swatch-name">Nocturne</span>
+          </button>
+          <button class="theme-swatch" data-theme-val="light">
+            <span class="swatch-circle swatch-light"></span>
+            <span class="swatch-name">Daylight</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Font Family -->
+      <div class="setting-group">
+        <label class="setting-label">Typeface</label>
+        <div class="font-grid">
+          <button class="font-option active" data-font="crimson" style="font-family: 'Crimson Pro', Georgia, serif;">
+            <span class="font-sample">Ag</span>
+            <span class="font-name">Crimson Serif</span>
+          </button>
+          <button class="font-option" data-font="lora" style="font-family: 'Lora', Palatino, serif;">
+            <span class="font-sample">Ag</span>
+            <span class="font-name">Lora Classic</span>
+          </button>
+          <button class="font-option" data-font="sans" style="font-family: 'Inter', system-ui, sans-serif;">
+            <span class="font-sample">Ag</span>
+            <span class="font-name">Clean Sans</span>
+          </button>
+          <button class="font-option" data-font="readable" style="font-family: Verdana, sans-serif;">
+            <span class="font-sample">Ag</span>
+            <span class="font-name">High Legibility</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Font Size -->
+      <div class="setting-group">
+        <div class="setting-row-between">
+          <label class="setting-label">Font Size</label>
+          <span id="font-size-display" class="setting-val">20px</span>
+        </div>
+        <div class="stepper-row">
+          <button id="btn-font-smaller" class="stepper-btn" aria-label="Decrease Font Size">A−</button>
+          <input id="font-size-slider" type="range" min="15" max="28" step="1" value="20" class="range-slider" />
+          <button id="btn-font-larger" class="stepper-btn" aria-label="Increase Font Size">A+</button>
+        </div>
+      </div>
+
+      <!-- Line Spacing -->
+      <div class="setting-group">
+        <div class="setting-row-between">
+          <label class="setting-label">Line Spacing</label>
+          <span id="line-height-display" class="setting-val">1.75</span>
+        </div>
+        <div class="segmented-control">
+          <button class="seg-btn line-height-btn" data-lh="1.5">Compact</button>
+          <button class="seg-btn line-height-btn active" data-lh="1.75">Normal</button>
+          <button class="seg-btn line-height-btn" data-lh="2.0">Relaxed</button>
+          <button class="seg-btn line-height-btn" data-lh="2.2">Airy</button>
+        </div>
+      </div>
+
+      <!-- Page Width -->
+      <div class="setting-group">
+        <div class="setting-row-between">
+          <label class="setting-label">Column Width</label>
+          <span id="page-width-display" class="setting-val">Medium</span>
+        </div>
+        <div class="segmented-control">
+          <button class="seg-btn width-btn" data-width="600px">Narrow</button>
+          <button class="seg-btn width-btn active" data-width="740px">Medium</button>
+          <button class="seg-btn width-btn" data-width="900px">Wide</button>
+          <button class="seg-btn width-btn" data-width="1080px">Full</button>
+        </div>
+      </div>
+
+      <!-- Text Alignment -->
+      <div class="setting-group">
+        <label class="setting-label">Paragraph Formatting</label>
+        <div class="segmented-control">
+          <button class="seg-btn align-btn active" data-align="justify">Justified</button>
+          <button class="seg-btn align-btn" data-align="left">Left Aligned</button>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ==================== BOOKMARKS DRAWER ==================== -->
+  <aside id="bookmarks-drawer" class="side-drawer right-drawer hidden" aria-label="Bookmarks">
+    <div class="drawer-header">
+      <div>
+        <h2 class="drawer-title">Saved Bookmarks</h2>
+        <p class="drawer-subtitle">Jump back to your favorite moments</p>
+      </div>
+      <button id="btn-close-bookmarks" class="icon-btn" aria-label="Close Bookmarks">✕</button>
+    </div>
+
+    <div class="bookmarks-actions-bar">
+      <button id="btn-save-bookmark-drawer" class="primary-gold-btn full-width hidden">
+        + Bookmark Current Position
+      </button>
+    </div>
+
+    <div id="bookmarks-list" class="bookmarks-list">
+      <!-- Populated dynamically -->
+    </div>
+  </aside>
+
+  <!-- ==================== FULL-TEXT SEARCH MODAL ==================== -->
+  <div id="search-modal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-label="Search Books">
+    <div class="search-modal-card">
+      <div class="search-input-header">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="search-icon">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+        <input id="global-search-input" type="search" placeholder="Search characters, spells, scenes, or quotes across both books..." autocomplete="off" />
+        <button id="btn-close-search" class="icon-btn" aria-label="Close Search">Esc</button>
+      </div>
+
+      <div class="search-filter-bar">
+        <div class="search-scope-pills">
+          <button class="scope-pill active" data-scope="all">Both Books</button>
+          <button class="scope-pill" data-scope="book-1">Book 1 Only</button>
+          <button class="scope-pill" data-scope="book-2">Book 2 Only</button>
+        </div>
+        <span id="search-stats-text" class="search-stats-text">Type at least 2 characters to search 253,060 words</span>
+      </div>
+
+      <div id="search-results-list" class="search-results-list">
+        <!-- Search results rendered here -->
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== EDIT TITLES MODAL ==================== -->
+  <div id="edit-titles-modal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-label="Customize Book Titles">
+    <div class="small-modal-card">
+      <div class="drawer-header">
+        <h2 class="drawer-title">Customize Titles</h2>
+        <button id="btn-close-titles-modal" class="icon-btn">✕</button>
+      </div>
+      <div class="modal-form-body">
+        <div class="form-field">
+          <label for="input-series-title">Series Title</label>
+          <input id="input-series-title" type="text" class="drawer-input" />
+        </div>
+        <div class="form-field">
+          <label for="input-series-subtitle">Series Subtitle</label>
+          <input id="input-series-subtitle" type="text" class="drawer-input" />
+        </div>
+        <div class="form-field">
+          <label for="input-book1-title">Book 1 Title</label>
+          <input id="input-book1-title" type="text" class="drawer-input" />
+        </div>
+        <div class="form-field">
+          <label for="input-book1-subtitle">Book 1 Subtitle</label>
+          <input id="input-book1-subtitle" type="text" class="drawer-input" />
+        </div>
+        <div class="form-field">
+          <label for="input-book2-title">Book 2 Title</label>
+          <input id="input-book2-title" type="text" class="drawer-input" />
+        </div>
+        <div class="form-field">
+          <label for="input-book2-subtitle">Book 2 Subtitle</label>
+          <input id="input-book2-subtitle" type="text" class="drawer-input" />
+        </div>
+        <div class="modal-actions">
+          <button id="btn-reset-titles" class="secondary-btn">Reset Defaults</button>
+          <button id="btn-save-titles" class="primary-gold-btn">Save Titles</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast-notification" class="toast-notification hidden" role="status" aria-live="polite"></div>
+
+  <!-- Pre-compiled Books Data + Application Script -->
+  <script src="books-data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
+
